@@ -1,0 +1,25 @@
+*.class
+!.gitignore
+!README.md
+!pom.xml
+!assembly.xml
+!*.java
+!*.xml
+!*.properites
+!*/src/
+*/.classpath
+*/.settings
+*/target
+!*/lib/*.jar
+.project
+# Package Files #
+*.prefs
+*.war
+*.ear
+/target/
+*.idea
+*.iml
+/src/main/resources/rebel.xml
+/logs/*
+/log/*
+/wlinsk.log.path*
