@@ -1,4 +1,4 @@
-package com.wlinsk.controller;
+package com.wlinsk.controller.user;
 
 import com.wlinsk.basic.Result;
 import io.swagger.annotations.Api;

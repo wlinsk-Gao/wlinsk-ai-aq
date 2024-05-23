@@ -1,6 +1,5 @@
 package com.wlinsk.basic.enums;
 
-
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.wlinsk.basic.serializer.JackSonDeserializer;
@@ -8,28 +7,20 @@ import com.wlinsk.basic.serializer.JackSonSerializer;
 
 /**
  * @Author: wlinsk
- * @Date: 2024/4/21
+ * @Date: 2024/5/23
  */
 @JsonSerialize(using = JackSonSerializer.class)
 @JsonDeserialize(using = JackSonDeserializer.class)
-public enum DelStateEnum implements BaseEnum<DelStateEnum, Integer> {
-
-    /**
-     * 正常
-     */
-    NORMAL(10, "正常"),
-
-    /**
-     * 软删除
-     */
-    DEL(11, "软删除"),
+public enum AppTypeEnum implements BaseEnum<AppTypeEnum,Integer>{
+    //（0-得分类，1-测评类）
+    SCORE(0,"得分类"),
+    TEST(1,"测评类"),
     ;
+    private final Integer code;
 
-    private Integer code;
+    private final String message;
 
-    private String message;
-
-    DelStateEnum(Integer code, String message) {
+    AppTypeEnum(Integer code, String message) {
         this.code = code;
         this.message = message;
     }

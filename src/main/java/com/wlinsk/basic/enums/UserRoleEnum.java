@@ -1,6 +1,5 @@
 package com.wlinsk.basic.enums;
 
-
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
 import com.wlinsk.basic.serializer.JackSonDeserializer;
@@ -8,34 +7,27 @@ import com.wlinsk.basic.serializer.JackSonSerializer;
 
 /**
  * @Author: wlinsk
- * @Date: 2024/4/21
+ * @Date: 2024/5/23
  */
 @JsonSerialize(using = JackSonSerializer.class)
 @JsonDeserialize(using = JackSonDeserializer.class)
-public enum DelStateEnum implements BaseEnum<DelStateEnum, Integer> {
-
-    /**
-     * 正常
-     */
-    NORMAL(10, "正常"),
-
-    /**
-     * 软删除
-     */
-    DEL(11, "软删除"),
+public enum UserRoleEnum implements BaseEnum<UserRoleEnum,String>{
+    USER("user","用户"),
+    ADMIN("admin","管理员"),
+    BAN("ban","禁用"),
     ;
 
-    private Integer code;
+    private final String code;
 
-    private String message;
+    private final String message;
 
-    DelStateEnum(Integer code, String message) {
+    UserRoleEnum(String code, String message) {
         this.code = code;
         this.message = message;
     }
 
     @Override
-    public Integer getCode() {
+    public String getCode() {
         return code;
     }
 

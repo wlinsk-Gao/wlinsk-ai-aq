@@ -1,7 +1,7 @@
 wlinsk:
   log:
     path: ./logs/
-    name: basic-backend
+    name: wlinsk-ai-ap
 server:
   port: 8080
   servlet:
@@ -18,9 +18,9 @@ spring:
   profiles:
     active: dev
   application:
-    name: basic-backend
+    name: wlinsk-ai-ap
   datasource:
-    url: jdbc:mysql://192.168.130.129:3306/xxx?useUnicode=true&characterEncoding=utf8&allowMultiQueries=true&useSSL=false&useAffectedRows=true
+    url: jdbc:mysql://192.168.130.129:3306/wlinsk-ai-aq?useUnicode=true&characterEncoding=utf8&allowMultiQueries=true&useSSL=false&useAffectedRows=true
     username: root
     password: root
     driver-class-name: com.mysql.cj.jdbc.Driver

@@ -43,7 +43,7 @@ public class BasicExceptionAdvice {
 
     @ExceptionHandler(BasicException.class)
     @ResponseBody
-    public Result exceYuPaoAir(BasicException e){
+    public Result exceBasicAir(BasicException e){
         log.error("-----BasicException----:",e);
         return Result.error(e.getStatus(),e.getMessage());
     }

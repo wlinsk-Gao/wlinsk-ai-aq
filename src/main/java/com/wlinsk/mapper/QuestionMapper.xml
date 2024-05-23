@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.wlinsk.mapper.QuestionMapper">
+
+    <resultMap id="BaseResultMap" type="com.wlinsk.model.entity.Question">
+            <id property="id" column="id" jdbcType="INTEGER"/>
+            <result property="questionId" column="question_id" jdbcType="VARCHAR"/>
+            <result property="questionContent" column="question_content" jdbcType="VARCHAR"/>
+            <result property="appId" column="app_id" jdbcType="VARCHAR"/>
+            <result property="userId" column="user_id" jdbcType="VARCHAR"/>
+            <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
+            <result property="updateTime" column="update_time" jdbcType="TIMESTAMP"/>
+            <result property="version" column="version" jdbcType="INTEGER"/>
+            <result property="delState" column="del_state" jdbcType="INTEGER"
+                    javaType="com.wlinsk.basic.enums.DelStateEnum"
+                    typeHandler="com.wlinsk.basic.handler.UniversalEnumHandler"/>
+    </resultMap>
+
+    <sql id="Base_Column_List">
+        id,question_id,question_content,
+        app_id,user_id,create_time,
+        update_time,version,del_state
+    </sql>
+</mapper>
