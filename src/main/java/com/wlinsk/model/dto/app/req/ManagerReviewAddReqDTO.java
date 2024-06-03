@@ -27,6 +27,5 @@ public class ManagerReviewAddReqDTO implements Serializable {
     /**
      * 审核信息
      */
-    @NotBlank(message = "审核信息不能为空")
     private String reviewMessage;
 }
