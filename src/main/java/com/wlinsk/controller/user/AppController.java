@@ -2,10 +2,7 @@ package com.wlinsk.controller.user;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wlinsk.basic.Result;
-import com.wlinsk.model.dto.app.req.AddAppReqDTO;
-import com.wlinsk.model.dto.app.req.DeleteAppReqDTO;
-import com.wlinsk.model.dto.app.req.QueryAppPageReqDTO;
-import com.wlinsk.model.dto.app.req.UpdateAppReqDTO;
+import com.wlinsk.model.dto.app.req.*;
 import com.wlinsk.model.dto.app.resp.QueryAppDetailsRespDTO;
 import com.wlinsk.model.dto.app.resp.QueryAppPageRespDTO;
 import com.wlinsk.service.user.AppService;
@@ -57,5 +54,11 @@ public class AppController {
     public Result<QueryAppDetailsRespDTO> queryById(@PathVariable("appId")String appId){
         QueryAppDetailsRespDTO respDTO = appService.queryById(appId);
         return Result.ok(respDTO);
+    }
+
+    @PostMapping("/queryMyPage")
+    public Result<IPage<QueryAppPageRespDTO>> queryMyPage(@Validated @RequestBody QueryMyAppPageReqDTO reqDTO){
+        IPage<QueryAppPageRespDTO> result = appService.queryMyPage(reqDTO);
+        return Result.ok(result);
     }
 }

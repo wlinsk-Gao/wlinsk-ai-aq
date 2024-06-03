@@ -2,6 +2,7 @@ package com.wlinsk.model.dto.question;
 
 import lombok.Data;
 
+import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import java.io.Serializable;
@@ -23,6 +24,7 @@ public class QuestionContentDTO implements Serializable {
     /**
      * 题目选项列表
      */
+    @Valid
     @NotEmpty(message = "题目选项列表不能为空")
     private List<QuestionOptionDTO> options;
 

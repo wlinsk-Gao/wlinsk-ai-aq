@@ -1,6 +1,7 @@
 package com.wlinsk.basic.utils;
 
 import com.wlinsk.basic.enums.ReviewStatusEnum;
+import com.wlinsk.basic.enums.UserRoleEnum;
 import com.wlinsk.basic.exception.BasicException;
 import com.wlinsk.basic.exception.SysCode;
 import com.wlinsk.mapper.AppMapper;
@@ -39,9 +40,9 @@ public class BusinessValidatorUtils {
     public User validateUserInfo(String targetUserId){
         String currentUserId = BasicAuthContextUtils.getUserId();
         User user = userMapper.queryByUserId(currentUserId);
-        /*if (!UserRoleEnum.ADMIN.equals(user.getUserRole()) && !targetUserId.equals(currentUserId)){
+        if (!UserRoleEnum.ADMIN.equals(user.getUserRole()) && !targetUserId.equals(currentUserId)){
             throw new BasicException(SysCode.SYSTEM_NO_PERMISSION);
-        }*/
+        }
         return user;
     }
 

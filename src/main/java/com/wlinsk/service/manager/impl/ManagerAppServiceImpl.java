@@ -2,6 +2,8 @@ package com.wlinsk.service.manager.impl;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.wlinsk.basic.enums.AppTypeEnum;
+import com.wlinsk.basic.enums.ScoringStrategyEnum;
 import com.wlinsk.basic.exception.BasicException;
 import com.wlinsk.basic.exception.SysCode;
 import com.wlinsk.basic.transaction.BasicTransactionTemplate;
@@ -39,6 +41,12 @@ public class ManagerAppServiceImpl implements ManagerAppService {
 
     @Override
     public void updateApp(ManagerUpdateAppReqDTO reqDTO) {
+        if (AppTypeEnum.TEST.equals(reqDTO.getAppType())){
+            throw new BasicException(SysCode.NOT_SUPPORT_TEST_APP);
+        }
+        if (ScoringStrategyEnum.AI_SCORE.equals(reqDTO.getScoringStrategy())){
+            throw new BasicException(SysCode.NOT_SUPPORT_AI_SCORE);
+        }
         App app = appMapper.queryByAppId(reqDTO.getAppId());
         Optional.ofNullable(app).orElseThrow(() -> new BasicException(SysCode.DATA_NOT_FOUND));
         App update = new App();

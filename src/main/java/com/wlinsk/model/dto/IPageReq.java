@@ -2,6 +2,7 @@ package com.wlinsk.model.dto;
 
 import lombok.Data;
 
+import javax.validation.constraints.Max;
 import javax.validation.constraints.NotNull;
 import java.io.Serializable;
 
@@ -20,6 +21,7 @@ public class IPageReq implements Serializable {
     /**
      * 页面数据条数
      */
+    @Max(value = 20,message = "最多每页数据展示20条")
     @NotNull(message = "每页大小不可为空")
     private Integer pageSize;
 }

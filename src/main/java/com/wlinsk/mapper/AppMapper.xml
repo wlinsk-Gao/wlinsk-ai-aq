@@ -135,4 +135,16 @@
         group by app.app_id
         order by app.create_time desc
     </select>
+    <select id="queryMyPageForClient" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/> from tb_app
+        where del_state = 10 and user_id = #{userId,jdbcType=VARCHAR}
+        <if test="appName != null and appName != ''">
+            and app_name like concat('%',#{appName,jdbcType=VARCHAR},'%')
+        </if>
+        <if test="appId != null and appId != ''">
+            and app_id = #{appId,jdbcType=VARCHAR}
+        </if>
+        group by app_id
+        order by create_time desc
+    </select>
 </mapper>

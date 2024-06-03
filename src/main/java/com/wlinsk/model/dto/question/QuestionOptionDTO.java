@@ -2,6 +2,7 @@ package com.wlinsk.model.dto.question;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 
 /**
@@ -18,13 +19,15 @@ public class QuestionOptionDTO implements Serializable {
     /**
      * 得分
      */
-    private int score;
+    private Integer score;
     /**
      * 选项值：
      */
+    @NotBlank(message = "选项值不可为空")
     private String value;
     /**
      * 选项key：A，B，C，D
      */
+    @NotBlank(message = "选项key不可为空")
     private String key;
 }

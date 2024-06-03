@@ -20,6 +20,8 @@ public interface AppMapper extends BaseMapper<App> {
     IPage<App> queryPage(Page<App> page,@Param("appId") String appId,@Param("appName") String appName);
 
     IPage<App> queryPageForClient(Page<App> page, @Param("context") String context);
+
+    IPage<App> queryMyPageForClient(Page<App> page, @Param("userId")String userId, @Param("appId")String appId, @Param("appName")String appName);
 }
 
 

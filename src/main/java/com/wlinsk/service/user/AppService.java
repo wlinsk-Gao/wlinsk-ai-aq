@@ -1,10 +1,7 @@
 package com.wlinsk.service.user;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.wlinsk.model.dto.app.req.AddAppReqDTO;
-import com.wlinsk.model.dto.app.req.DeleteAppReqDTO;
-import com.wlinsk.model.dto.app.req.QueryAppPageReqDTO;
-import com.wlinsk.model.dto.app.req.UpdateAppReqDTO;
+import com.wlinsk.model.dto.app.req.*;
 import com.wlinsk.model.dto.app.resp.QueryAppDetailsRespDTO;
 import com.wlinsk.model.dto.app.resp.QueryAppPageRespDTO;
 import com.wlinsk.model.entity.App;
@@ -24,4 +21,6 @@ public interface AppService extends IService<App> {
     QueryAppDetailsRespDTO queryById(String appId);
 
     void updateApp(UpdateAppReqDTO reqDTO);
+
+    IPage<QueryAppPageRespDTO> queryMyPage(QueryMyAppPageReqDTO reqDTO);
 }

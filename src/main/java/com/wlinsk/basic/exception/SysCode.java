@@ -36,7 +36,9 @@ public enum SysCode implements ReturnCode {
     APP_ID_NOT_EXIST("11004","应用Id不可为空"),
     QUESTION_NUMBER_NOT_EXIST("11005","题目数量不可为空"),
     OPTION_NUMBER_NOT_EXIST("11006","选项数量不可为空"),
-
+    NOT_SUPPORT_TEST_APP("11007","暂不支持测评类的应用"),
+    NOT_SUPPORT_AI_SCORE("11008","暂不支持AI评分"),
+    SCORE_NON_ZERO("11009","每道题目的总选项得分不能为0"),
     ;
 
 

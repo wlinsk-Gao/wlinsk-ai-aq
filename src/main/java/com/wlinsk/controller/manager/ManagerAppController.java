@@ -11,6 +11,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 /**
@@ -28,19 +29,19 @@ public class ManagerAppController {
 
     @ApiOperation(value = "更新应用")
     @PostMapping("/update")
-    public Result<Void> updateApp(@RequestBody ManagerUpdateAppReqDTO reqDTO){
+    public Result<Void> updateApp(@Validated @RequestBody ManagerUpdateAppReqDTO reqDTO){
         managerAppService.updateApp(reqDTO);
         return Result.ok();
     }
     @ApiOperation(value = "更新审核")
     @PostMapping("/review")
-    public Result<Void> reviewApp(@RequestBody ManagerReviewAddReqDTO reqDTO){
+    public Result<Void> reviewApp(@Validated @RequestBody ManagerReviewAddReqDTO reqDTO){
         managerAppService.reviewApp(reqDTO);
         return Result.ok();
     }
     @ApiOperation(value = "分页查询")
     @PostMapping("/queryPage")
-    public Result<IPage<ManagerAppQueryPageRespDTO>> queryPage(@RequestBody ManagerAppQueryPageReqDTO req){
+    public Result<IPage<ManagerAppQueryPageRespDTO>> queryPage(@Validated @RequestBody ManagerAppQueryPageReqDTO req){
         IPage<ManagerAppQueryPageRespDTO> result = managerAppService.queryPage(req);
         return Result.ok(result);
     }
