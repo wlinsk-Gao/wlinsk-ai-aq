@@ -30,15 +30,26 @@ public class TokenInterceptor implements HandlerInterceptor, Ordered {
         if ("OPTIONS".equals(request.getMethod())) {
             return true;
         }
-        String token = request.getHeader("token");
+        String token = null;
+        String accept = request.getHeader("Accept");
+        if (StringUtils.isNotBlank(accept) && accept.equals("text/event-stream")){
+            token = request.getParameter("token");
+            log.info("sse token: {}",token);
+        }else {
+            token = request.getHeader("token");
+        }
         if (StringUtils.isBlank(token)){
             throw new BasicException(SysCode.SYS_TOKEN_EXPIRE);
         }
         RedisUtils redisUtils = ApplicationContextUtils.getBean(RedisUtils.class);
-        String[] split = redisUtils.getVal(token).split(":");
+        String userInfo = redisUtils.getVal(token);
+        if (StringUtils.isBlank(userInfo)){
+            throw new BasicException(SysCode.SYS_TOKEN_EXPIRE);
+        }
+        String[] split = userInfo.split(":");
         Optional.ofNullable(split[0])
                 .orElseThrow(() -> new BasicException(SysCode.SYS_TOKEN_EXPIRE));
-        boolean match = pathMatcher.match("/manager/**", request.getRequestURI());
+        boolean match = pathMatcher.match("/manager/**", request.getServletPath());
         if (match && !UserRoleEnum.ADMIN.equals(UserRoleEnum.valueOf(split[1]))){
             throw new BasicException(SysCode.SYS_URL_UNAUTHORIZED);
         }

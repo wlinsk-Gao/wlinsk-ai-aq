@@ -15,11 +15,11 @@ public class IPageReq implements Serializable {
     /**
      * 页数
      */
-    @NotNull(message = "pageNum can not be null")
+    @NotNull(message = "当前页码不可为空")
     private Integer pageNum;
     /**
      * 页面数据条数
      */
-    @NotNull(message = "pageSize can not be null")
+    @NotNull(message = "每页大小不可为空")
     private Integer pageSize;
 }

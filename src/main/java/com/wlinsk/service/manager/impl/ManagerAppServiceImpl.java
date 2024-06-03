@@ -6,11 +6,13 @@ import com.wlinsk.basic.exception.BasicException;
 import com.wlinsk.basic.exception.SysCode;
 import com.wlinsk.basic.transaction.BasicTransactionTemplate;
 import com.wlinsk.basic.utils.BasicAuthContextUtils;
+import com.wlinsk.basic.utils.BusinessValidatorUtils;
 import com.wlinsk.mapper.AppMapper;
 import com.wlinsk.mapper.UserMapper;
-import com.wlinsk.model.dto.IPageReq;
+import com.wlinsk.model.dto.app.req.ManagerAppQueryPageReqDTO;
 import com.wlinsk.model.dto.app.req.ManagerReviewAddReqDTO;
 import com.wlinsk.model.dto.app.req.ManagerUpdateAppReqDTO;
+import com.wlinsk.model.dto.app.resp.ManagerAppQueryPageRespDTO;
 import com.wlinsk.model.entity.App;
 import com.wlinsk.service.manager.ManagerAppService;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +35,7 @@ public class ManagerAppServiceImpl implements ManagerAppService {
     private final AppMapper appMapper;
     private final UserMapper userMapper;
     private final BasicTransactionTemplate basicTransactionTemplate;
+    private final BusinessValidatorUtils businessValidatorUtils;
 
     @Override
     public void updateApp(ManagerUpdateAppReqDTO reqDTO) {
@@ -81,8 +84,31 @@ public class ManagerAppServiceImpl implements ManagerAppService {
     }
 
     @Override
-    public IPage<App> queryPage(IPageReq req) {
+    public IPage<ManagerAppQueryPageRespDTO> queryPage(ManagerAppQueryPageReqDTO req) {
         Page<App> page = new Page<>(req.getPageNum(), req.getPageSize());
-        return appMapper.queryPage(page);
+        IPage<App> iPage = appMapper.queryPage(page,req.getAppId(),req.getAppName());
+        return iPage.convert(app -> {
+            ManagerAppQueryPageRespDTO respDTO = new ManagerAppQueryPageRespDTO();
+            BeanUtils.copyProperties(app, respDTO);
+            return respDTO;
+        });
+    }
+
+    @Override
+    public void deleteById(String appId) {
+        App app = appMapper.queryByAppId(appId);
+        Optional.ofNullable(app).orElseThrow(() -> new BasicException(SysCode.DATA_NOT_FOUND));
+        businessValidatorUtils.validateUserInfo(app.getUserId());
+        App delete = new App();
+        delete.setAppId(app.getAppId());
+        delete.setVersion(app.getVersion());
+        delete.setUpdateTime(new Date());
+        delete.setDelState(app.getDelState());
+        basicTransactionTemplate.execute(action -> {
+            if (appMapper.deleteByAppId(delete) != 1){
+                throw new BasicException(SysCode.DATABASE_DELETE_ERROR);
+            }
+            return SysCode.success;
+        });
     }
 }

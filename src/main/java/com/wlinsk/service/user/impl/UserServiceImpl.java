@@ -1,4 +1,4 @@
-package com.wlinsk.service.impl;
+package com.wlinsk.service.user.impl;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wlinsk.basic.enums.UserRoleEnum;
@@ -6,6 +6,7 @@ import com.wlinsk.basic.exception.BasicException;
 import com.wlinsk.basic.exception.SysCode;
 import com.wlinsk.basic.idGenerator.IdUtils;
 import com.wlinsk.basic.transaction.BasicTransactionTemplate;
+import com.wlinsk.basic.utils.BasicAuthContextUtils;
 import com.wlinsk.basic.utils.RedisUtils;
 import com.wlinsk.mapper.UserMapper;
 import com.wlinsk.model.dto.user.req.UserLoginReqDTO;
@@ -13,7 +14,7 @@ import com.wlinsk.model.dto.user.req.UserRegisterReqDTO;
 import com.wlinsk.model.dto.user.resp.QueryUserDetailRespDTO;
 import com.wlinsk.model.dto.user.resp.UserLoginRespDTO;
 import com.wlinsk.model.entity.User;
-import com.wlinsk.service.UserService;
+import com.wlinsk.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -33,6 +34,7 @@ import java.util.UUID;
 public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     implements UserService{
 
+    private final String defaultAvatar = "https://wlinsk-ai-aq.oss-cn-guangzhou.aliyuncs.com/2024/05/26/73603796218521296026548255599116.png";
     private final UserMapper userMapper;
     private final RedisUtils redisUtils;
     private final BasicTransactionTemplate basicTransactionTemplate;
@@ -42,12 +44,16 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         if (Objects.nonNull(userMapper.queryByUserAccount(dto.getUserAccount()))){
             throw new BasicException(SysCode.USER_ACCOUNT_ALREADY_EXIST);
         }
+        if (!dto.getUserPassword().equals(dto.getCheckPassword())){
+            throw new BasicException(SysCode.USER_PASSWORD_ERROR);
+        }
         User user = new User();
         user.init();
         user.setUserId(IdUtils.build(null));
         user.setUserName(dto.getUserAccount());
         user.setUserAccount(dto.getUserAccount());
         user.setUserPassword(dto.getUserPassword());
+        user.setUserAvatar(defaultAvatar);
         basicTransactionTemplate.execute(action -> {
             if (userMapper.insert(user) != 1){
                 throw new BasicException(SysCode.USER_REGISTER_ERROR);
@@ -89,6 +95,20 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         QueryUserDetailRespDTO result = new QueryUserDetailRespDTO();
         BeanUtils.copyProperties(user,result);
         return result;
+    }
+
+    @Override
+    public void logout() {
+        String userId = BasicAuthContextUtils.getUserId();
+        if (StringUtils.isBlank(userId)){
+            throw new BasicException(SysCode.SYSTEM_ERROE);
+        }
+        String token = redisUtils.getVal(userId);
+        if (StringUtils.isBlank(token)){
+            //未登录
+            throw new BasicException(SysCode.SYS_TOKEN_EXPIRE);
+        }
+        redisUtils.delVal(token);
     }
 }
 

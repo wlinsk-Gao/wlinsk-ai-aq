@@ -1,10 +1,10 @@
 package com.wlinsk.service.manager;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
-import com.wlinsk.model.dto.IPageReq;
+import com.wlinsk.model.dto.app.req.ManagerAppQueryPageReqDTO;
 import com.wlinsk.model.dto.app.req.ManagerReviewAddReqDTO;
 import com.wlinsk.model.dto.app.req.ManagerUpdateAppReqDTO;
-import com.wlinsk.model.entity.App;
+import com.wlinsk.model.dto.app.resp.ManagerAppQueryPageRespDTO;
 
 /**
  * @Author: wlinsk
@@ -15,5 +15,7 @@ public interface ManagerAppService {
 
     void reviewApp(ManagerReviewAddReqDTO reqDTO);
 
-    IPage<App> queryPage(IPageReq req);
+    IPage<ManagerAppQueryPageRespDTO> queryPage(ManagerAppQueryPageReqDTO req);
+
+    void deleteById(String appId);
 }

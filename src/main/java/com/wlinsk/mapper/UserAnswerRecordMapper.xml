@@ -38,4 +38,32 @@
         create_time,update_time,version,
         del_state
     </sql>
+    <update id="deleteRecord">
+        update tb_user_answer_record
+        set
+            update_time = #{userAnswerRecord.updateTime,jdbcType=TIMESTAMP},
+            version = #{userAnswerRecord.version,jdbcType=INTEGER},
+            del_state = #{userAnswerRecord.delState,jdbcType=INTEGER,javaType=com.wlinsk.basic.enums.DelStateEnum,
+            typeHandler=com.wlinsk.basic.handler.UniversalEnumHandler}
+        where record_id = #{userAnswerRecord.recordId,jdbcType=VARCHAR} and del_state = 10
+    </update>
+    <select id="queryById" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/> from tb_user_answer_record
+        where record_id = #{recordId,jdbcType=VARCHAR} and del_state = 10
+    </select>
+    <select id="queryPage" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/> from tb_user_answer_record
+        where del_state = 10 and user_id = #{userId,jdbcType=VARCHAR}
+        <if test="appId != null and appId != ''">
+            and app_id = #{appId,jdbcType=VARCHAR}
+        </if>
+        <if test="recordId != null and recordId != ''">
+            and record_id = #{recordId,jdbcType=VARCHAR}
+        </if>
+        <if test="resultName != null and resultName != ''">
+            and result_name like concat('%',#{resultName,jdbcType=VARCHAR},'%')
+        </if>
+        group by record_id
+        order by create_time desc
+    </select>
 </mapper>

@@ -2,6 +2,7 @@ package com.wlinsk.basic.handler;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.wlinsk.model.dto.question.QuestionContentDTO;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.ibatis.type.BaseTypeHandler;
@@ -31,11 +32,22 @@ public class ListToJsonHandler<T extends Object> extends BaseTypeHandler<List<T>
         }
     }
 
+    /**
+     * 明确声明了结果集的列名，会调用该函数；如ResultMap的设置
+     * @param rs
+     * @param columnName
+     * @return
+     * @throws SQLException
+     */
     @Override
     public List<T> getNullableResult(ResultSet rs, String columnName) throws SQLException {
         try {
             if (StringUtils.isBlank(rs.getString(columnName))) {
                 return null;
+            }
+            if ("question_content".equals(columnName)){
+                return (List<T>) JSON.parseObject(rs.getString(columnName),new TypeReference<List<QuestionContentDTO>>() {
+                });
             }
             return JSON.parseObject(rs.getString(columnName),new TypeReference<ArrayList<T>>() {
             });
@@ -45,6 +57,13 @@ public class ListToJsonHandler<T extends Object> extends BaseTypeHandler<List<T>
         }
     }
 
+    /**
+     * 在没有明确声明结果集列名的情况下，会这调用该函数
+     * @param rs
+     * @param columnIndex
+     * @return
+     * @throws SQLException
+     */
     @Override
     public List<T> getNullableResult(ResultSet rs, int columnIndex) throws SQLException {
         try {
@@ -59,6 +78,13 @@ public class ListToJsonHandler<T extends Object> extends BaseTypeHandler<List<T>
         }
     }
 
+    /**
+     * 供存储过程使用，针对存储过程而设，通过列下标的方式来获取存储过程输出结果中的数据
+     * @param cs
+     * @param columnIndex
+     * @return
+     * @throws SQLException
+     */
     @Override
     public List<T> getNullableResult(CallableStatement cs, int columnIndex) throws SQLException {
         try {

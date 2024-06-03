@@ -16,6 +16,9 @@ public enum SysCode implements ReturnCode {
     SYS_TOKEN_EXPIRE("9991", "Invalid token"),// token失效
     SYS_URL_UNAUTHORIZED("9990", "权限不足"),
     DATA_NOT_FOUND("9989", "数据不存在"),
+    SYSTEM_FILE_UPLOAD_ERROR("9988", "文件上传失败"),
+    SYSTEM_NO_PERMISSION("9987", "没有操作权限"),
+    SYSTEM_STRATEGY_HANDLER_NO_FOUND("9986", "策略处理器不存在"),
 
     PARAMETER_ERROR("9000", "Parameter validation error"),
     USER_ACCOUNT_ALREADY_EXIST("10000", "账号已存在"),
@@ -25,7 +28,14 @@ public enum SysCode implements ReturnCode {
     USER_ACCOUNT_PASSWORD_ERROR_TIMES_EXCEED_LOCK("10004", "Account or passworderror times exceed, account locked"),
     USER_REGISTER_ERROR("10005","用户注册失败，请稍后重试"),
     USER_DISABLED("10006","当前用户已被禁用，请联系管理员处理"),
+    USER_PASSWORD_ERROR("10007","密码错误，请重新输入"),
     APP_REVIEW_STATUS_HAS_CHANGED("11000","应用状态已修改"),
+    APP_NOT_REVIEW("11001","当前应用未审核"),
+    SCORING_RESULT_RANGE_IS_NULL("11002","结果得分范围不可为空"),
+    SCORING_PROP_IS_NULL("11003","结果属性集合不可为空"),
+    APP_ID_NOT_EXIST("11004","应用Id不可为空"),
+    QUESTION_NUMBER_NOT_EXIST("11005","题目数量不可为空"),
+    OPTION_NUMBER_NOT_EXIST("11006","选项数量不可为空"),
 
     ;
 

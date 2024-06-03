@@ -2,6 +2,8 @@ package com.wlinsk.basic.enums;
 
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.fasterxml.jackson.databind.annotation.JsonSerialize;
+import com.wlinsk.basic.exception.BasicException;
+import com.wlinsk.basic.exception.SysCode;
 import com.wlinsk.basic.serializer.JackSonDeserializer;
 import com.wlinsk.basic.serializer.JackSonSerializer;
 
@@ -23,6 +25,15 @@ public enum AppTypeEnum implements BaseEnum<AppTypeEnum,Integer>{
     AppTypeEnum(Integer code, String message) {
         this.code = code;
         this.message = message;
+    }
+
+    public static AppTypeEnum getByCode(Integer code){
+        for (AppTypeEnum appTypeEnum : AppTypeEnum.values()) {
+            if(appTypeEnum.getCode().equals(code)){
+                return appTypeEnum;
+            }
+        }
+        throw new BasicException(SysCode.ENUM_ERROR);
     }
 
     @Override

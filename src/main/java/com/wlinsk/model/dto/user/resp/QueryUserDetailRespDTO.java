@@ -4,6 +4,7 @@ import com.wlinsk.basic.enums.UserRoleEnum;
 import lombok.Data;
 
 import java.io.Serializable;
+import java.util.Date;
 
 /**
  * @Author: wlinsk
@@ -41,4 +42,14 @@ public class QueryUserDetailRespDTO implements Serializable {
      * 用户角色：user/admin/ban
      */
     private UserRoleEnum userRole;
+
+    /**
+     * 创建时间
+     */
+    private Date createTime;
+
+    /**
+     * 更新时间
+     */
+    private Date updateTime;
 }

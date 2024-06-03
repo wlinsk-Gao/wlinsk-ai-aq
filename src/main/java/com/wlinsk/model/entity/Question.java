@@ -2,9 +2,13 @@ package com.wlinsk.model.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.wlinsk.basic.handler.ListToJsonHandler;
+import com.wlinsk.model.dto.question.QuestionContentDTO;
 import lombok.Data;
+import org.apache.ibatis.type.JdbcType;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * 题目表
@@ -21,7 +25,8 @@ public class Question extends BaseEntity implements Serializable {
     /**
      * 题目内容（json格式）
      */
-    private String questionContent;
+    @TableField(typeHandler = ListToJsonHandler.class,jdbcType = JdbcType.VARCHAR)
+    private List<QuestionContentDTO> questionContent;
 
     /**
      * 应用id

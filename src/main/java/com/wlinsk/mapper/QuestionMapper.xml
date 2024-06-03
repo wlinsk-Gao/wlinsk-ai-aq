@@ -7,7 +7,8 @@
     <resultMap id="BaseResultMap" type="com.wlinsk.model.entity.Question">
             <id property="id" column="id" jdbcType="INTEGER"/>
             <result property="questionId" column="question_id" jdbcType="VARCHAR"/>
-            <result property="questionContent" column="question_content" jdbcType="VARCHAR"/>
+            <result property="questionContent" column="question_content" jdbcType="VARCHAR"
+                    typeHandler="com.wlinsk.basic.handler.ListToJsonHandler" javaType="java.util.List"/>
             <result property="appId" column="app_id" jdbcType="VARCHAR"/>
             <result property="userId" column="user_id" jdbcType="VARCHAR"/>
             <result property="createTime" column="create_time" jdbcType="TIMESTAMP"/>
@@ -23,4 +24,35 @@
         app_id,user_id,create_time,
         update_time,version,del_state
     </sql>
+    <update id="updateQuestion">
+        update tb_question
+        set question_content = #{question.questionContent,jdbcType=VARCHAR,
+        typeHandler=com.wlinsk.basic.handler.ListToJsonHandler,javaType=java.util.List},
+        version = #{question.version,jdbcType=INTEGER} + 1,
+        update_time = #{question.updateTime,jdbcType=TIMESTAMP}
+        where question_id = #{question.questionId,jdbcType=VARCHAR} and del_state = 10
+    </update>
+    <select id="queryPage" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/> from tb_question
+        where del_state = 10 and app_id = #{appId,jdbcType=VARCHAR}
+        group by question_id
+        order by create_time desc
+    </select>
+    <select id="queryById" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/> from tb_question
+        where del_state = 10 and question_id = #{questionId,jdbcType=VARCHAR}
+    </select>
+    <select id="queryByAppId" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/> from tb_question
+        where del_state = 10 and app_id = #{appId,jdbcType=VARCHAR}
+        group by app_id
+    </select>
+    <select id="queryLatestQuestionContentByAppId" resultMap="BaseResultMap">
+        select question_content from tb_question
+        where del_state = 10 and app_id = #{appId,jdbcType=VARCHAR}
+        group by question_id
+        order by create_time desc
+        limit 1
+    </select>
+
 </mapper>

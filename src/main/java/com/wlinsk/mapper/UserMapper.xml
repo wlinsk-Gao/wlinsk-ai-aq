@@ -32,6 +32,15 @@
         user_role,create_time,update_time,
         version,del_state
     </sql>
+    <update id="deleteUser">
+        update tb_user
+        set
+            version = #{user.version,jdbcType=INTEGER} + 1,
+            update_time = #{user.updateTime,jdbcType=TIMESTAMP},
+            del_state = #{user.delState,jdbcType=INTEGER,javaType=com.wlinsk.basic.enums.DelStateEnum,
+            typeHandler=com.wlinsk.basic.handler.UniversalEnumHandler}
+        where user_id = #{user.userId,jdbcType=VARCHAR} and del_state = 10
+    </update>
     <select id="queryByUserAccount" resultMap="BaseResultMap">
         select <include refid="Base_Column_List"/> from tb_user
         where user_account = #{userAccount,jdbcType=VARCHAR} and del_state = 10
@@ -43,5 +52,26 @@
     <select id="queryUserPage" resultMap="BaseResultMap">
         select <include refid="Base_Column_List"/> from tb_user
         where del_state = 10
+        <if test="userId != null and userId != ''">
+            and user_id = #{userId,jdbcType=VARCHAR}
+        </if>
+        <if test="userAccount != null and userAccount != ''">
+            and user_account = #{userAccount,jdbcType=VARCHAR}
+        </if>
+        <if test="userName != null and userName != ''">
+            and user_name = #{userName,jdbcType=VARCHAR}
+        </if>
+        <if test="userRole != null">
+            and user_role = #{userRole,jdbcType=INTEGER,javaType=com.wlinsk.basic.enums.UserRoleEnum,typeHandler=com.wlinsk.basic.handler.UniversalEnumHandler}
+        </if>
+        order by create_time desc
+    </select>
+    <select id="queryByUserIdList" resultMap="BaseResultMap">
+        select <include refid="Base_Column_List"/> from tb_user
+        where del_state = 10
+        and user_id in
+        <foreach collection="userIdList" item="userId" separator="," open="(" close=")">
+            #{userId,jdbcType=VARCHAR}
+        </foreach>
     </select>
 </mapper>

@@ -16,4 +16,6 @@ public class UserRegisterReqDTO implements Serializable {
     private String userAccount;
     @NotBlank(message = "密码不能为空")
     private String userPassword;
+    @NotBlank(message = "确认密码不能为空")
+    private String checkPassword;
 }

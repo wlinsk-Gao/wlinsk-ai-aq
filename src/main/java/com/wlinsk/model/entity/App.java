@@ -78,5 +78,8 @@ public class App extends BaseEntity implements Serializable {
     private String userId;
 
     @TableField(exist = false)
+    private User userInfo;
+
+    @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }

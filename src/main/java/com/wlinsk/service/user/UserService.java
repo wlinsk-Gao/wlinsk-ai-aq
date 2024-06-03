@@ -1,4 +1,4 @@
-package com.wlinsk.service;
+package com.wlinsk.service.user;
 
 import com.wlinsk.model.dto.user.req.UserLoginReqDTO;
 import com.wlinsk.model.dto.user.req.UserRegisterReqDTO;
@@ -17,4 +17,7 @@ public interface UserService extends IService<User> {
     UserLoginRespDTO login(UserLoginReqDTO dto);
 
     QueryUserDetailRespDTO queryById(String userId);
+
+    void logout();
+
 }

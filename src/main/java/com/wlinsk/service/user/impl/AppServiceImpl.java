@@ -1,0 +1,162 @@
+package com.wlinsk.service.user.impl;
+
+import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wlinsk.basic.enums.DelStateEnum;
+import com.wlinsk.basic.enums.ReviewStatusEnum;
+import com.wlinsk.basic.enums.UserRoleEnum;
+import com.wlinsk.basic.exception.BasicException;
+import com.wlinsk.basic.exception.SysCode;
+import com.wlinsk.basic.idGenerator.IdUtils;
+import com.wlinsk.basic.transaction.BasicTransactionTemplate;
+import com.wlinsk.basic.utils.BasicAuthContextUtils;
+import com.wlinsk.mapper.UserMapper;
+import com.wlinsk.model.dto.app.req.AddAppReqDTO;
+import com.wlinsk.model.dto.app.req.DeleteAppReqDTO;
+import com.wlinsk.model.dto.app.req.QueryAppPageReqDTO;
+import com.wlinsk.model.dto.app.req.UpdateAppReqDTO;
+import com.wlinsk.model.dto.app.resp.QueryAppDetailsRespDTO;
+import com.wlinsk.model.dto.app.resp.QueryAppPageRespDTO;
+import com.wlinsk.model.dto.user.resp.QueryUserDetailRespDTO;
+import com.wlinsk.model.entity.App;
+import com.wlinsk.model.entity.User;
+import com.wlinsk.service.user.AppService;
+import com.wlinsk.mapper.AppMapper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.BeanUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
+
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+/**
+ *
+ */
+@Slf4j
+@Service
+@RequiredArgsConstructor
+public class AppServiceImpl extends ServiceImpl<AppMapper, App>
+    implements AppService{
+
+    private final AppMapper appMapper;
+    private final UserMapper userMapper;
+    private final BasicTransactionTemplate basicTransactionTemplate;
+
+    @Override
+    public String addApp(AddAppReqDTO dto) {
+        String userId = BasicAuthContextUtils.getUserId();
+        User user = userMapper.queryByUserId(userId);
+        Optional.ofNullable(user)
+                .orElseThrow(() -> new BasicException(SysCode.DATA_NOT_FOUND));
+
+        App app = new App();
+        app.init();
+        app.setAppId(IdUtils.build(null));
+        BeanUtils.copyProperties(dto,app);
+        app.setUserId(userId);
+        app.setReviewStatus(ReviewStatusEnum.TO_BE_REVIEWED);
+        basicTransactionTemplate.execute(action -> {
+            if (appMapper.insert(app) != 1){
+                throw new BasicException(SysCode.DATABASE_INSERT_ERROR);
+            }
+            return SysCode.success;
+        });
+        return app.getAppId();
+    }
+
+    @Override
+    public void deleteApp(DeleteAppReqDTO reqDTO) {
+        String userId = BasicAuthContextUtils.getUserId();
+        User user = userMapper.queryByUserId(userId);
+        Optional.ofNullable(user).orElseThrow(() -> new BasicException(SysCode.DATA_NOT_FOUND));
+        App app = appMapper.queryByAppId(reqDTO.getAppId());
+        Optional.ofNullable(app).orElseThrow(() -> new BasicException(SysCode.DATA_NOT_FOUND));
+        if (!UserRoleEnum.ADMIN.equals(user.getUserRole()) && !userId.equals(app.getUserId())){
+            log.error("无法删除不属于自己的应用");
+            throw new BasicException(SysCode.DATA_NOT_FOUND);
+        }
+        App deleteApp = new App();
+        deleteApp.setUpdateTime(new Date());
+        deleteApp.setVersion(app.getVersion());
+        deleteApp.setDelState(DelStateEnum.DEL);
+        deleteApp.setAppId(app.getAppId());
+        basicTransactionTemplate.execute(action -> {
+            if (appMapper.deleteByAppId(deleteApp) != 1){
+                throw new BasicException(SysCode.DATABASE_DELETE_ERROR);
+            }
+            return SysCode.success;
+        });
+    }
+
+    @Override
+    public IPage<QueryAppPageRespDTO> queryPage(QueryAppPageReqDTO reqDTO) {
+        Page<App> page = new Page<>(reqDTO.getPageNum(), reqDTO.getPageSize());
+        IPage<App> iPage = appMapper.queryPageForClient(page,reqDTO.getContext());
+        if (CollectionUtils.isEmpty(iPage.getRecords())){
+            return iPage.convert(app -> null);
+        }
+        List<String> collect = iPage.getRecords().stream().map(App::getUserId).distinct().collect(Collectors.toList());
+        if (CollectionUtils.isEmpty(collect)){
+            throw new BasicException(SysCode.SYSTEM_ERROE);
+        }
+        Map<String, User> userMap = userMapper.queryByUserIdList(collect).stream().collect(Collectors.toMap(User::getUserId, Function.identity()));
+        return iPage.convert(app -> {
+            QueryAppPageRespDTO respDTO = new QueryAppPageRespDTO();
+            BeanUtils.copyProperties(app, respDTO);
+            User user = userMap.get(app.getUserId());
+            if (Objects.nonNull(user)){
+                QueryUserDetailRespDTO userDTO = new QueryUserDetailRespDTO();
+                BeanUtils.copyProperties(user, userDTO);
+                respDTO.setUserInfo(userDTO);
+            }
+            return respDTO;
+        });
+    }
+
+    @Override
+    public QueryAppDetailsRespDTO queryById(String appId) {
+        App app = appMapper.queryByAppId(appId);
+        Optional.ofNullable(app).orElseThrow(() -> new BasicException(SysCode.DATA_NOT_FOUND));
+        User user = userMapper.queryByUserId(app.getUserId());
+        QueryAppDetailsRespDTO respDTO = new QueryAppDetailsRespDTO();
+        BeanUtils.copyProperties(app,respDTO);
+        if (Objects.nonNull(user)){
+            QueryUserDetailRespDTO userDTO = new QueryUserDetailRespDTO();
+            BeanUtils.copyProperties(user,userDTO);
+            respDTO.setUserInfo(userDTO);
+        }
+        return respDTO;
+    }
+
+    @Override
+    public void updateApp(UpdateAppReqDTO reqDTO) {
+        App app = appMapper.queryByAppId(reqDTO.getAppId());
+        Optional.ofNullable(app).orElseThrow(() -> new BasicException(SysCode.DATA_NOT_FOUND));
+        String currentUserId = BasicAuthContextUtils.getUserId();
+        User currentUser = userMapper.queryByUserId(currentUserId);
+        if (!app.getUserId().equals(currentUserId) || !UserRoleEnum.ADMIN.equals(currentUser.getUserRole())){
+            log.warn("无法修改不属于自己的应用");
+            throw new BasicException(SysCode.DATA_NOT_FOUND);
+        }
+        App update = new App();
+        BeanUtils.copyProperties(reqDTO,update);
+        update.setVersion(app.getVersion());
+        update.setUpdateTime(new Date());
+        update.setAppId(reqDTO.getAppId());
+        update.setReviewStatus(ReviewStatusEnum.TO_BE_REVIEWED);
+        basicTransactionTemplate.execute(action -> {
+            if (appMapper.updateApp(update) != 1){
+                throw new BasicException(SysCode.DATABASE_UPDATE_ERROR);
+            }
+          return SysCode.success;
+        });
+    }
+}
+
+
+
+

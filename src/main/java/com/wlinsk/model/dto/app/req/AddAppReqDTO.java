@@ -30,6 +30,7 @@ public class AddAppReqDTO implements Serializable {
     /**
      * 应用图标
      */
+    @NotBlank(message = "应用图标不能为空")
     private String appIcon;
 
     /**

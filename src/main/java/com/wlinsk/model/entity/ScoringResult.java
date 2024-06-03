@@ -57,6 +57,12 @@ public class ScoringResult extends BaseEntity implements Serializable {
      */
     private String userId;
 
+    /**
+     * 用户最终得分
+     */
+    @TableField(exist = false)
+    private Integer totalScore;
+
     @TableField(exist = false)
     private static final long serialVersionUID = 1L;
 }
