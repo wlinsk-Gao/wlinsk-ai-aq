@@ -39,6 +39,8 @@ public enum SysCode implements ReturnCode {
     NOT_SUPPORT_TEST_APP("11007","暂不支持测评类的应用"),
     NOT_SUPPORT_AI_SCORE("11008","暂不支持AI评分"),
     SCORE_NON_ZERO("11009","每道题目的总选项得分不能为0"),
+    QUESTION_NON_FOUND("11010","当前应用未设置题目，无法审核"),
+    SCORING_RESULT_NON_FOUND("11011","当前应用未评分规则，无法审核"),
     ;
 
 

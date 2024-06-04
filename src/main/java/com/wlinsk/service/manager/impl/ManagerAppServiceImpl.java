@@ -10,19 +10,25 @@ import com.wlinsk.basic.transaction.BasicTransactionTemplate;
 import com.wlinsk.basic.utils.BasicAuthContextUtils;
 import com.wlinsk.basic.utils.BusinessValidatorUtils;
 import com.wlinsk.mapper.AppMapper;
+import com.wlinsk.mapper.QuestionMapper;
+import com.wlinsk.mapper.ScoringResultMapper;
 import com.wlinsk.mapper.UserMapper;
 import com.wlinsk.model.dto.app.req.ManagerAppQueryPageReqDTO;
 import com.wlinsk.model.dto.app.req.ManagerReviewAddReqDTO;
 import com.wlinsk.model.dto.app.req.ManagerUpdateAppReqDTO;
 import com.wlinsk.model.dto.app.resp.ManagerAppQueryPageRespDTO;
 import com.wlinsk.model.entity.App;
+import com.wlinsk.model.entity.Question;
+import com.wlinsk.model.entity.ScoringResult;
 import com.wlinsk.service.manager.ManagerAppService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
 
 /**
@@ -38,6 +44,8 @@ public class ManagerAppServiceImpl implements ManagerAppService {
     private final UserMapper userMapper;
     private final BasicTransactionTemplate basicTransactionTemplate;
     private final BusinessValidatorUtils businessValidatorUtils;
+    private final QuestionMapper questionMapper;
+    private final ScoringResultMapper scoringResultMapper;
 
     @Override
     public void updateApp(ManagerUpdateAppReqDTO reqDTO) {
@@ -72,6 +80,12 @@ public class ManagerAppServiceImpl implements ManagerAppService {
         Optional.ofNullable(app).orElseThrow(() -> new BasicException(SysCode.DATA_NOT_FOUND));
         if (app.getReviewStatus().equals(reqDTO.getReviewStatus())){
             throw new BasicException(SysCode.APP_REVIEW_STATUS_HAS_CHANGED);
+        }
+        Question question = questionMapper.queryByAppId(app.getAppId());
+        Optional.ofNullable(question).orElseThrow(() -> new BasicException(SysCode.QUESTION_NON_FOUND));
+        List<ScoringResult> scoringResults = scoringResultMapper.queryByAppIdOrderByScoreRange(app.getAppId());
+        if (CollectionUtils.isEmpty(scoringResults)){
+            throw new BasicException(SysCode.SCORING_RESULT_NON_FOUND);
         }
         String userId = BasicAuthContextUtils.getUserId();
         Date updateTime = new Date();
