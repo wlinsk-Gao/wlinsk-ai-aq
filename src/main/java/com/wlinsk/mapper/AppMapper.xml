@@ -91,6 +91,10 @@
                 review_status = #{app.reviewStatus,jdbcType=INTEGER,javaType=com.wlinsk.basic.enums.ReviewStatusEnum,
                 typeHandler=com.wlinsk.basic.handler.UniversalEnumHandler},
             </if>
+            <if test="app.reviewStatus != null and app.reviewStatus.code == 0">
+                review_status = 0,
+                review_message = null,
+            </if>
             <if test="app.reviewerId != null and app.reviewerId != ''">
                 reviewer_id = #{app.reviewerId,jdbcType=VARCHAR},
             </if>

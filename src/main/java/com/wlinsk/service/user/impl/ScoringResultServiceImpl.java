@@ -5,12 +5,14 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wlinsk.basic.enums.AppTypeEnum;
 import com.wlinsk.basic.enums.DelStateEnum;
+import com.wlinsk.basic.enums.ReviewStatusEnum;
 import com.wlinsk.basic.exception.BasicException;
 import com.wlinsk.basic.exception.SysCode;
 import com.wlinsk.basic.idGenerator.IdUtils;
 import com.wlinsk.basic.transaction.BasicTransactionTemplate;
 import com.wlinsk.basic.utils.BasicAuthContextUtils;
 import com.wlinsk.basic.utils.BusinessValidatorUtils;
+import com.wlinsk.mapper.AppMapper;
 import com.wlinsk.mapper.ScoringResultMapper;
 import com.wlinsk.mapper.UserMapper;
 import com.wlinsk.model.dto.scoringResult.req.AddScoringResultReqDTO;
@@ -45,9 +47,11 @@ public class ScoringResultServiceImpl extends ServiceImpl<ScoringResultMapper, S
     private final UserMapper userMapper;
     private final BusinessValidatorUtils businessValidatorUtils;
     private final BasicTransactionTemplate basicTransactionTemplate;
+    private final AppMapper appMapper;
     @Override
     public void addScoringResult(AddScoringResultReqDTO reqDTO) {
-        validateForAddAndUpdate(reqDTO.getAppId(), reqDTO.getResultProp(), reqDTO.getResultScoreRange());
+        App oldApp = validateForAddAndUpdate(reqDTO.getAppId(), reqDTO.getResultProp(), reqDTO.getResultScoreRange());
+        App updateApp = buildUpdateApp(oldApp);
         ScoringResult scoringResult = new ScoringResult();
         BeanUtils.copyProperties(reqDTO,scoringResult);
         scoringResult.init();
@@ -56,6 +60,11 @@ public class ScoringResultServiceImpl extends ServiceImpl<ScoringResultMapper, S
         basicTransactionTemplate.execute(action -> {
             if (scoringResultMapper.insert(scoringResult) != 1){
                 throw new BasicException(SysCode.DATABASE_INSERT_ERROR);
+            }
+            if (Objects.nonNull(updateApp)){
+                if (appMapper.updateApp(updateApp) != 1){
+                    throw new BasicException(SysCode.DATABASE_UPDATE_ERROR);
+                }
             }
             return SysCode.success;
         });
@@ -68,7 +77,8 @@ public class ScoringResultServiceImpl extends ServiceImpl<ScoringResultMapper, S
         if (!scoringResult.getAppId().equals(reqDTO.getAppId())){
             throw new BasicException(SysCode.DATA_NOT_FOUND);
         }
-        validateForAddAndUpdate(reqDTO.getAppId(), reqDTO.getResultProp(), reqDTO.getResultScoreRange());
+        App oldApp = validateForAddAndUpdate(reqDTO.getAppId(), reqDTO.getResultProp(), reqDTO.getResultScoreRange());
+        App updateApp = buildUpdateApp(oldApp);
         ScoringResult update = new ScoringResult();
         BeanUtils.copyProperties(reqDTO,update);
         update.setVersion(scoringResult.getVersion());
@@ -76,6 +86,11 @@ public class ScoringResultServiceImpl extends ServiceImpl<ScoringResultMapper, S
         basicTransactionTemplate.execute(action -> {
             if (scoringResultMapper.updateScoringResult(update) != 1) {
                 throw new BasicException(SysCode.DATABASE_UPDATE_ERROR);
+            }
+            if (Objects.nonNull(updateApp)){
+                if (appMapper.updateApp(updateApp) != 1){
+                    throw new BasicException(SysCode.DATABASE_UPDATE_ERROR);
+                }
             }
             return SysCode.success;
         });
@@ -106,22 +121,45 @@ public class ScoringResultServiceImpl extends ServiceImpl<ScoringResultMapper, S
     public void deleteById(String resultId) {
         ScoringResult scoringResult = scoringResultMapper.queryById(resultId);
         Optional.ofNullable(scoringResult).orElseThrow(() -> new BasicException(SysCode.DATA_NOT_FOUND));
-        businessValidatorUtils.validateHandlerPermission(scoringResult.getAppId());
+        App oldApp = appMapper.queryByAppId(scoringResult.getAppId());
+        Optional.ofNullable(oldApp).orElseThrow(() -> new BasicException(SysCode.DATA_NOT_FOUND));
+        businessValidatorUtils.validateUserInfo(oldApp.getUserId());
         ScoringResult delete = new ScoringResult();
         delete.setResultId(scoringResult.getResultId());
         delete.setVersion(scoringResult.getVersion());
         delete.setUpdateTime(new Date());
         delete.setDelState(DelStateEnum.DEL);
+        App updateApp = null;
+        List<ScoringResult> scoringResults = scoringResultMapper.queryByAppIdOrderByScoreRange(scoringResult.getAppId());
+        if (!CollectionUtils.isEmpty(scoringResults)){
+            List<String> collect = scoringResults.stream().map(ScoringResult::getResultId).collect(Collectors.toList());
+            if (collect.size() == 1 && collect.get(0).equals(scoringResult.getResultId())
+                    && Arrays.asList(ReviewStatusEnum.REVIEW_PASS,ReviewStatusEnum.REVIEW_FAIL)
+                    .contains(oldApp.getReviewStatus())){
+                updateApp = new App();
+                updateApp.setReviewStatus(ReviewStatusEnum.TO_BE_REVIEWED);
+                updateApp.setAppId(oldApp.getAppId());
+                updateApp.setUpdateTime(new Date());
+                updateApp.setVersion(oldApp.getVersion());
+            }
+        }
+        App finalUpdateApp = updateApp;
         basicTransactionTemplate.execute(action -> {
-            if (scoringResultMapper.deleteScoringResult(scoringResult) != 1){
+            if (scoringResultMapper.deleteScoringResult(delete) != 1){
                 throw new BasicException(SysCode.DATABASE_DELETE_ERROR);
+            }
+            if (Objects.nonNull(finalUpdateApp)){
+                if (appMapper.updateApp(finalUpdateApp) != 1){
+                    throw new BasicException(SysCode.DATABASE_UPDATE_ERROR);
+                }
             }
             return SysCode.success;
         });
     }
 
-    private void validateForAddAndUpdate(String appId, List<String> resultProp,Integer resultScoreRange) {
-        App app = businessValidatorUtils.validateAppInfo(appId);
+    private App validateForAddAndUpdate(String appId, List<String> resultProp,Integer resultScoreRange) {
+        App app = appMapper.queryByAppId(appId);
+        Optional.ofNullable(app).orElseThrow(() -> new BasicException(SysCode.DATA_NOT_FOUND));
         businessValidatorUtils.validateUserInfo(app.getUserId());
         if (AppTypeEnum.SCORE.equals(app.getAppType()) && Objects.isNull(resultScoreRange)){
             throw new BasicException(SysCode.SCORING_RESULT_RANGE_IS_NULL);
@@ -129,6 +167,18 @@ public class ScoringResultServiceImpl extends ServiceImpl<ScoringResultMapper, S
         if (AppTypeEnum.TEST.equals(app.getAppType()) && CollectionUtils.isEmpty(resultProp)){
             throw new BasicException(SysCode.SCORING_PROP_IS_NULL);
         }
+        return app;
+    }
+    private App buildUpdateApp(App oldApp){
+        if (ReviewStatusEnum.REVIEW_PASS.equals(oldApp.getReviewStatus()) || ReviewStatusEnum.REVIEW_FAIL.equals(oldApp.getReviewStatus())){
+            App update = new App();
+            update.setReviewStatus(ReviewStatusEnum.TO_BE_REVIEWED);
+            update.setAppId(oldApp.getAppId());
+            update.setUpdateTime(new Date());
+            update.setVersion(oldApp.getVersion());
+            return update;
+        }
+        return null;
     }
 }
 

@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wlinsk.basic.enums.AppTypeEnum;
+import com.wlinsk.basic.enums.ReviewStatusEnum;
 import com.wlinsk.basic.exception.BasicException;
 import com.wlinsk.basic.exception.SysCode;
 import com.wlinsk.basic.idGenerator.IdUtils;
@@ -13,6 +14,7 @@ import com.wlinsk.basic.utils.BasicAuthContextUtils;
 import com.wlinsk.basic.utils.BusinessValidatorUtils;
 import com.wlinsk.basic.utils.RedisUtils;
 import com.wlinsk.basic.utils.zhiPuAI.AiUtils;
+import com.wlinsk.mapper.AppMapper;
 import com.wlinsk.mapper.QuestionMapper;
 import com.wlinsk.mapper.UserMapper;
 import com.wlinsk.model.dto.question.QuestionContentDTO;
@@ -57,19 +59,26 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
     private final BasicTransactionTemplate basicTransactionTemplate;
     private final AiUtils aiUtils;
     private final RedisUtils redisUtils;
+    private final AppMapper appMapper;
 
     @Override
     public void addQuestion(AddQuestionReqDTO reqDTO) {
-        validateForAddAndUpdate(reqDTO.getAppId(), reqDTO.getQuestionContent());
+        App app = validateForAddAndUpdate(reqDTO.getAppId(), reqDTO.getQuestionContent());
         Question question = new Question();
         question.init();
         question.setQuestionId(IdUtils.build(null));
         question.setUserId(BasicAuthContextUtils.getUserId());
         question.setQuestionContent(reqDTO.getQuestionContent());
         question.setAppId(reqDTO.getAppId());
+        App update = buildUpdateApp(app);
         basicTransactionTemplate.execute(action -> {
             if (questionMapper.insert(question) != 1) {
                 throw new BasicException(SysCode.DATABASE_INSERT_ERROR);
+            }
+            if (Objects.nonNull(update)){
+                if (appMapper.updateApp(update) != 1){
+                    throw new BasicException(SysCode.DATABASE_UPDATE_ERROR);
+                }
             }
             return SysCode.success;
         });
@@ -100,7 +109,8 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
     public void updateQuestion(UpdateQuestionReqDTO reqDTO) {
         Question question = questionMapper.queryById(reqDTO.getQuestionId());
         Optional.ofNullable(question).orElseThrow(() -> new BasicException(SysCode.DATA_NOT_FOUND));
-        validateForAddAndUpdate(question.getAppId(), reqDTO.getQuestionContent());
+        App oldApp = validateForAddAndUpdate(question.getAppId(), reqDTO.getQuestionContent());
+        App updateApp = buildUpdateApp(oldApp);
         Question update = new Question();
         update.setQuestionId(question.getQuestionId());
         update.setVersion(question.getVersion());
@@ -110,12 +120,29 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
             if (questionMapper.updateQuestion(update) != 1) {
                 throw new BasicException(SysCode.DATABASE_UPDATE_ERROR);
             }
+            if (Objects.nonNull(updateApp)){
+                if (appMapper.updateApp(updateApp) != 1){
+                    throw new BasicException(SysCode.DATABASE_UPDATE_ERROR);
+                }
+            }
             return SysCode.success;
         });
     }
+    private App buildUpdateApp(App oldApp){
+        if (ReviewStatusEnum.REVIEW_PASS.equals(oldApp.getReviewStatus()) || ReviewStatusEnum.REVIEW_FAIL.equals(oldApp.getReviewStatus())){
+            App update = new App();
+            update.setReviewStatus(ReviewStatusEnum.TO_BE_REVIEWED);
+            update.setAppId(oldApp.getAppId());
+            update.setUpdateTime(new Date());
+            update.setVersion(oldApp.getVersion());
+            return update;
+        }
+        return null;
+    }
 
-    private void validateForAddAndUpdate(String appId,List<QuestionContentDTO> questionContent){
-        App app = businessValidatorUtils.validateAppInfo(appId);
+    private App validateForAddAndUpdate(String appId,List<QuestionContentDTO> questionContent){
+        App app = appMapper.queryByAppId(appId);
+        Optional.ofNullable(app).orElseThrow(() -> new BasicException(SysCode.DATA_NOT_FOUND));
         businessValidatorUtils.validateUserInfo(appId);
         if (AppTypeEnum.SCORE.equals(app.getAppType())) {
             questionContent.stream().map(QuestionContentDTO::getOptions)
@@ -124,6 +151,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
                         throw new BasicException(SysCode.SCORE_NON_ZERO);
                     });
         }
+        return app;
     }
 
     @Override
