@@ -1,4 +1,17 @@
 wlinsk:
+  three-part-login:
+    providers:
+      gitee:
+        clientId: xxx
+        clientSecret: xxx
+        redirectUrl: xxx
+        authorizationUrl: https://gitee.com/oauth/authorize?client_id={client_id}&redirect_uri={redirect_uri}&response_type=code&scope=user_info
+        tokenUrl: https://gitee.com/oauth/token?grant_type=authorization_code&code={code}&client_id={client_id}&redirect_uri={redirect_uri}&client_secret={client_secret}
+        userInfoUrl: https://gitee.com/api/v5/user?access_token={access_token}
+      wechat:
+        clientId: 222
+        clientSecret: xxx
+        redirectUrl: http://localhost:8081/api/wechatLogin
   log:
     path: ./logs/
     name: wlinsk-ai-ap
@@ -48,9 +61,9 @@ swagger:
   enable: true
 aliyun:
   oss:
-    endpoint: xxxx
-    accessKeyId: xxxx
-    accessKeySecret: xxxx
-    bucketName: xxxx
+    endpoint: xxx
+    accessKeyId: xxx
+    accessKeySecret: xxx
+    bucketName: xxx
 ai:
-  apiKey: xxxx
+  apiKey: xxx

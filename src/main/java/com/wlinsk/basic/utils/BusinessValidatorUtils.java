@@ -29,6 +29,11 @@ public class BusinessValidatorUtils {
         App app = validateAppInfo(appId);
         validateUserInfo(app.getUserId());
     }
+    public App validateAppExist(String appId){
+        App app = appMapper.queryByAppId(appId);
+        Optional.ofNullable(app).orElseThrow(() -> new BasicException(SysCode.DATA_NOT_FOUND));
+        return app;
+    }
     public App validateAppInfo(String appId){
         App app = appMapper.queryByAppId(appId);
         Optional.ofNullable(app).orElseThrow(() -> new BasicException(SysCode.DATA_NOT_FOUND));

@@ -156,7 +156,8 @@ public class AiUtils {
      */
     public String doRequest(List<ChatMessage> messages, Boolean stream, Float temperature) {
         ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder()
-                .model(Constants.ModelChatGLM4)
+//                .model(Constants.ModelChatGLM4)
+                .model("glm-4-plus")
                 .stream(stream)
                 .temperature(temperature)
                 .invokeMethod(Constants.invokeMethod)

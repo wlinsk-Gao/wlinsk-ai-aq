@@ -62,6 +62,8 @@ public class WebInterceptorConfig implements WebMvcConfigurer {
     private List<String> getWhiteList() {
         return Arrays.asList(
                 "/user/login",
+                "/user/threePartLogin",
+                "/user/threePartLoginCallback/**",
                 "/user/register",
                 "/swagger-resources/**", "/webjars/**", "/v2/**", "/swagger-ui.html/**",
                 "/","/csrf", "/api-docs", "/api-docs/**","/error");

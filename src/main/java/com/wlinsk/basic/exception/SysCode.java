@@ -19,6 +19,8 @@ public enum SysCode implements ReturnCode {
     SYSTEM_FILE_UPLOAD_ERROR("9988", "文件上传失败"),
     SYSTEM_NO_PERMISSION("9987", "没有操作权限"),
     SYSTEM_STRATEGY_HANDLER_NO_FOUND("9986", "策略处理器不存在"),
+    NOT_SUPPORT_OPERATION("9985", "不支持的操作"),
+    THREE_PART_LOGIN_ERROR("9984", "第三方登录失败"),
 
     PARAMETER_ERROR("9000", "Parameter validation error"),
     USER_ACCOUNT_ALREADY_EXIST("10000", "账号已存在"),

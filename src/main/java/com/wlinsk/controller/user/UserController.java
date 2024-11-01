@@ -2,6 +2,7 @@ package com.wlinsk.controller.user;
 
 import com.wlinsk.basic.Result;
 import com.wlinsk.basic.utils.BasicAuthContextUtils;
+import com.wlinsk.model.dto.user.req.ThreePartLoginReqDTO;
 import com.wlinsk.model.dto.user.req.UserLoginReqDTO;
 import com.wlinsk.model.dto.user.req.UserRegisterReqDTO;
 import com.wlinsk.model.dto.user.resp.QueryUserDetailRespDTO;
@@ -39,6 +40,18 @@ public class UserController {
         UserLoginRespDTO result = userService.login(dto);
         return Result.ok(result);
     }
+    @ApiOperation("三方登录")
+    @PostMapping("/threePartLogin")
+    public Result<String> threePartLogin(@Validated @RequestBody ThreePartLoginReqDTO dto){
+        return Result.ok(userService.threePartLogin(dto));
+    }
+    @ApiOperation("三方登录回调")
+    @PostMapping("/threePartLoginCallback/{code}")
+    public Result<UserLoginRespDTO> threePartLoginCallback(@PathVariable("code") String code){
+        UserLoginRespDTO userLoginRespDTO = userService.threePartLoginCallback(code);
+        return Result.ok(userLoginRespDTO);
+    }
+
     @ApiOperation("退出登录")
     @PostMapping("/logout")
     public Result<Void> logout(){

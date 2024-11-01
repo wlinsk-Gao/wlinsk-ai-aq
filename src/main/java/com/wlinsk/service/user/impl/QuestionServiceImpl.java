@@ -156,7 +156,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
 
     @Override
     public AiGenerateQuestionRespDTO aiGenerateQuestion(AiGenerateQuestionReqDTO reqDTO) {
-        App app = businessValidatorUtils.validateAppInfo(reqDTO.getAppId());
+        App app = businessValidatorUtils.validateAppExist(reqDTO.getAppId());
         businessValidatorUtils.validateUserInfo(app.getUserId());
         List<String> oldQuestionList = buildOldQuestionListForAIGenerate(reqDTO.getAppId(), reqDTO.getAiGenerateQuestionId());
         String oldQuestion = String.join(";", oldQuestionList);
@@ -216,7 +216,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
             throw new BasicException(SysCode.QUESTION_NUMBER_NOT_EXIST);
         }
         log.info("QuestionNumber:{}", reqDTO.getQuestionNumber());
-        App app = businessValidatorUtils.validateAppInfo(reqDTO.getAppId());
+        App app = businessValidatorUtils.validateAppExist(reqDTO.getAppId());
         businessValidatorUtils.validateUserInfo(app.getUserId());
         List<String> oldQuestionTitleList = buildOldQuestionListForAIGenerate(reqDTO.getAppId(), reqDTO.getAiGenerateQuestionId());
         String oldQuestion = String.join(";", oldQuestionTitleList);
