@@ -35,10 +35,12 @@ public class TestAIController {
         messages.add(chatMessage);
 
         ChatCompletionRequest chatCompletionRequest = ChatCompletionRequest.builder()
-                .model(Constants.ModelChatGLM4)
+//                .model(Constants.ModelChatGLM4)
+                .model("glm-4-plus")
                 .stream(Boolean.FALSE)
                 .invokeMethod(Constants.invokeMethod)
                 .messages(messages)
+//                .requestId(IdUtils.build("wlinsk"))
                 .build();
         ModelApiResponse invokeModelApiResp = client.invokeModelApi(chatCompletionRequest);
         try {

@@ -65,6 +65,8 @@ public class WebInterceptorConfig implements WebMvcConfigurer {
                 "/user/threePartLogin",
                 "/user/threePartLoginCallback/**",
                 "/user/register",
+                "/app/queryPage",
+                "/app/queryById/**",
                 "/swagger-resources/**", "/webjars/**", "/v2/**", "/swagger-ui.html/**",
                 "/","/csrf", "/api-docs", "/api-docs/**","/error");
     }
