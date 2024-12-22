@@ -3,6 +3,7 @@ package com.wlinsk.controller.user;
 import com.wlinsk.basic.Result;
 import com.wlinsk.basic.utils.BasicAuthContextUtils;
 import com.wlinsk.model.dto.user.req.ThreePartLoginReqDTO;
+import com.wlinsk.model.dto.user.req.UpdatePasswordReqDTO;
 import com.wlinsk.model.dto.user.req.UserLoginReqDTO;
 import com.wlinsk.model.dto.user.req.UserRegisterReqDTO;
 import com.wlinsk.model.dto.user.resp.QueryUserDetailRespDTO;
@@ -65,5 +66,12 @@ public class UserController {
         String userId = BasicAuthContextUtils.getUserId();
         QueryUserDetailRespDTO result = userService.queryById(userId);
         return Result.ok(result);
+    }
+
+    @ApiOperation("修改用户信息")
+    @PostMapping("/updatePassword")
+    public Result<Void> updatePassword(@Validated @RequestBody UpdatePasswordReqDTO dto){
+        userService.updatePassword(dto);
+        return Result.ok();
     }
 }

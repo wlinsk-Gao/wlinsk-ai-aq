@@ -16,6 +16,7 @@ import com.wlinsk.basic.utils.ThreePartLoginUtils;
 import com.wlinsk.mapper.UserMapper;
 import com.wlinsk.model.bo.TokenBo;
 import com.wlinsk.model.dto.user.req.ThreePartLoginReqDTO;
+import com.wlinsk.model.dto.user.req.UpdatePasswordReqDTO;
 import com.wlinsk.model.dto.user.req.UserLoginReqDTO;
 import com.wlinsk.model.dto.user.req.UserRegisterReqDTO;
 import com.wlinsk.model.dto.user.resp.QueryUserDetailRespDTO;
@@ -28,6 +29,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -122,6 +124,30 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
             throw new BasicException(SysCode.USER_DISABLED);
         }
         return buildLoginResult(user,callbackResult);
+    }
+
+    @Override
+    public void updatePassword(UpdatePasswordReqDTO dto) {
+        String userId = BasicAuthContextUtils.getUserId();
+        User user = userMapper.queryByUserId(userId);
+        if (!dto.getOriginalPassword().equals(user.getUserPassword())){
+            throw new BasicException(SysCode.USER_PASSWORD_ERROR);
+        }
+        if (!dto.getNewPassword().equals(dto.getConfirmNewPassword())){
+            throw new BasicException(SysCode.USER_PASSWORD_NOT_SAME);
+        }
+        User update = new User();
+        update.setUserId(userId);
+        update.setUpdateTime(new Date());
+        update.setUserPassword(dto.getNewPassword());
+        update.setVersion(user.getVersion());
+        basicTransactionTemplate.execute(action -> {
+            int result = userMapper.updatePassword(update);
+            if (result != 1){
+                throw new BasicException(SysCode.DATABASE_UPDATE_ERROR);
+            }
+            return SysCode.success;
+        });
     }
 
     private User registerUserToDB(String userAccount,String userName,String userPassword){

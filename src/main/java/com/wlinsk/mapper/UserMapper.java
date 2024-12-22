@@ -24,6 +24,8 @@ public interface UserMapper extends BaseMapper<User> {
     List<User> queryByUserIdList(@Param("userIdList") List<String> userIdList);
 
     int deleteUser(@Param("user") User user);
+
+    int updatePassword(@Param("user")User user);
 }
 
 
