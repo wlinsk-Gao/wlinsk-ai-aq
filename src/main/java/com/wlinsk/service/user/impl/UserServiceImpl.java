@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.wlinsk.basic.bo.GiteeLoginCallbackBo;
 import com.wlinsk.basic.bo.GiteeUserInfoBo;
+import com.wlinsk.basic.config.redisson.RedissonConstant;
 import com.wlinsk.basic.enums.ThreePartLoginEnums;
 import com.wlinsk.basic.enums.UserRoleEnum;
 import com.wlinsk.basic.exception.BasicException;
@@ -15,10 +16,7 @@ import com.wlinsk.basic.utils.RedisUtils;
 import com.wlinsk.basic.utils.ThreePartLoginUtils;
 import com.wlinsk.mapper.UserMapper;
 import com.wlinsk.model.bo.TokenBo;
-import com.wlinsk.model.dto.user.req.ThreePartLoginReqDTO;
-import com.wlinsk.model.dto.user.req.UpdatePasswordReqDTO;
-import com.wlinsk.model.dto.user.req.UserLoginReqDTO;
-import com.wlinsk.model.dto.user.req.UserRegisterReqDTO;
+import com.wlinsk.model.dto.user.req.*;
 import com.wlinsk.model.dto.user.resp.QueryUserDetailRespDTO;
 import com.wlinsk.model.dto.user.resp.UserLoginRespDTO;
 import com.wlinsk.model.entity.User;
@@ -26,6 +24,8 @@ import com.wlinsk.service.user.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 
@@ -48,30 +48,59 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
     private final RedisUtils redisUtils;
     private final BasicTransactionTemplate basicTransactionTemplate;
     private final ThreePartLoginUtils threePartLoginUtils;
+    private final RedissonClient redissonClient;
 
     @Override
     public void register(UserRegisterReqDTO dto) {
-        if (Objects.nonNull(userMapper.queryByUserAccount(dto.getUserAccount()))){
-            throw new BasicException(SysCode.USER_ACCOUNT_ALREADY_EXIST);
+        RLock lock = redissonClient.getLock(RedissonConstant.REGISTER_LOCK + dto.getUserAccount());
+        try {
+            lock.lock();
+            if (Objects.nonNull(userMapper.queryByUserAccount(dto.getUserAccount()))){
+                throw new BasicException(SysCode.USER_ACCOUNT_ALREADY_EXIST);
+            }
+            if (!dto.getUserPassword().equals(dto.getCheckPassword())){
+                throw new BasicException(SysCode.USER_PASSWORD_ERROR);
+            }
+            registerUserToDB(dto.getUserAccount(), dto.getUserAccount(),dto.getUserPassword());
+        } catch (Exception e) {
+            log.error("register error", e);
+            if (e instanceof BasicException){
+                throw e;
+            }
+            throw new BasicException(SysCode.SYSTEM_ERROE);
+        } finally {
+            if (Objects.nonNull(lock) && lock.isLocked()){
+                lock.unlock();
+            }
         }
-        if (!dto.getUserPassword().equals(dto.getCheckPassword())){
-            throw new BasicException(SysCode.USER_PASSWORD_ERROR);
-        }
-        registerUserToDB(dto.getUserAccount(), dto.getUserAccount(),dto.getUserPassword());
     }
 
     @Override
     public UserLoginRespDTO login(UserLoginReqDTO dto) {
-        User user = userMapper.queryByUserAccount(dto.getUserAccount());
-        Optional.ofNullable(user)
-                .orElseThrow(() -> new BasicException(SysCode.USER_ACCOUNT_NOT_EXIST));
-        if (!user.getUserPassword().equals(dto.getUserPassword())){
-            throw new BasicException(SysCode.USER_ACCOUNT_PASSWORD_ERROR);
+        RLock lock = redissonClient.getLock(RedissonConstant.LOGIN_LOCK + dto.getUserAccount());
+        try {
+            lock.lock();
+            User user = userMapper.queryByUserAccount(dto.getUserAccount());
+            Optional.ofNullable(user)
+                    .orElseThrow(() -> new BasicException(SysCode.USER_ACCOUNT_NOT_EXIST));
+            if (!user.getUserPassword().equals(dto.getUserPassword())){
+                throw new BasicException(SysCode.USER_ACCOUNT_PASSWORD_ERROR);
+            }
+            if (UserRoleEnum.BAN.equals(user.getUserRole())){
+                throw new BasicException(SysCode.USER_DISABLED);
+            }
+            return buildLoginResult(user,null);
+        } catch (BasicException e) {
+            log.error("login error", e);
+            if (e instanceof BasicException){
+                throw e;
+            }
+            throw new BasicException(SysCode.SYSTEM_ERROE);
+        } finally {
+            if (Objects.nonNull(lock) && lock.isLocked()){
+                lock.unlock();
+            }
         }
-        if (UserRoleEnum.BAN.equals(user.getUserRole())){
-            throw new BasicException(SysCode.USER_DISABLED);
-        }
-        return buildLoginResult(user,null);
     }
 
     @Override
@@ -143,6 +172,45 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User>
         update.setVersion(user.getVersion());
         basicTransactionTemplate.execute(action -> {
             int result = userMapper.updatePassword(update);
+            if (result != 1){
+                throw new BasicException(SysCode.DATABASE_UPDATE_ERROR);
+            }
+            return SysCode.success;
+        });
+    }
+
+    @Override
+    public void updateUserName(UpdateUserNameReqDTO dto) {
+        String userId = BasicAuthContextUtils.getUserId();
+        User user = userMapper.queryByUserId(userId);
+        User update = new User();
+        update.setUserId(userId);
+        update.setUpdateTime(new Date());
+        update.setUserName(dto.getUserName());
+        update.setVersion(user.getVersion());
+        basicTransactionTemplate.execute(action -> {
+            int result = userMapper.updateUserName(update);
+            if (result != 1){
+                throw new BasicException(SysCode.DATABASE_UPDATE_ERROR);
+            }
+            return SysCode.success;
+        });
+    }
+
+    @Override
+    public void updateUserProfile(UpdateUserProfileReqDTO dto) {
+        String userId = BasicAuthContextUtils.getUserId();
+        User user = userMapper.queryByUserId(userId);
+        if (StringUtils.isNotBlank(dto.getUserProfile()) && dto.getUserProfile().length() > 256){
+            throw new BasicException(SysCode.USER_PROFILE_LENGTH_ERROR);
+        }
+        User update = new User();
+        update.setUserId(userId);
+        update.setUpdateTime(new Date());
+        update.setUserProfile(dto.getUserProfile());
+        update.setVersion(user.getVersion());
+        basicTransactionTemplate.execute(action -> {
+            int result = userMapper.updateUserProfile(update);
             if (result != 1){
                 throw new BasicException(SysCode.DATABASE_UPDATE_ERROR);
             }

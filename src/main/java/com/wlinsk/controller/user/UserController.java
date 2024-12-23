@@ -2,10 +2,7 @@ package com.wlinsk.controller.user;
 
 import com.wlinsk.basic.Result;
 import com.wlinsk.basic.utils.BasicAuthContextUtils;
-import com.wlinsk.model.dto.user.req.ThreePartLoginReqDTO;
-import com.wlinsk.model.dto.user.req.UpdatePasswordReqDTO;
-import com.wlinsk.model.dto.user.req.UserLoginReqDTO;
-import com.wlinsk.model.dto.user.req.UserRegisterReqDTO;
+import com.wlinsk.model.dto.user.req.*;
 import com.wlinsk.model.dto.user.resp.QueryUserDetailRespDTO;
 import com.wlinsk.model.dto.user.resp.UserLoginRespDTO;
 import com.wlinsk.service.user.UserService;
@@ -72,6 +69,20 @@ public class UserController {
     @PostMapping("/updatePassword")
     public Result<Void> updatePassword(@Validated @RequestBody UpdatePasswordReqDTO dto){
         userService.updatePassword(dto);
+        return Result.ok();
+    }
+
+    @ApiOperation("修改用户名")
+    @PostMapping("/updateUserName")
+    public Result<Void> updateUserName(@Validated @RequestBody UpdateUserNameReqDTO dto){
+        userService.updateUserName(dto);
+        return Result.ok();
+    }
+
+    @ApiOperation("修改用户简介")
+    @PostMapping("/updateUserProfile")
+    public Result<Void> updateUserProfile(@Validated @RequestBody UpdateUserProfileReqDTO dto){
+        userService.updateUserProfile(dto);
         return Result.ok();
     }
 }

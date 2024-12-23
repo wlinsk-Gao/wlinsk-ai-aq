@@ -3,6 +3,7 @@ package com.wlinsk.service.manager.impl;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wlinsk.basic.enums.AppTypeEnum;
+import com.wlinsk.basic.enums.DelStateEnum;
 import com.wlinsk.basic.enums.ScoringStrategyEnum;
 import com.wlinsk.basic.exception.BasicException;
 import com.wlinsk.basic.exception.SysCode;
@@ -125,7 +126,7 @@ public class ManagerAppServiceImpl implements ManagerAppService {
         delete.setAppId(app.getAppId());
         delete.setVersion(app.getVersion());
         delete.setUpdateTime(new Date());
-        delete.setDelState(app.getDelState());
+        delete.setDelState(DelStateEnum.DEL);
         basicTransactionTemplate.execute(action -> {
             if (appMapper.deleteByAppId(delete) != 1){
                 throw new BasicException(SysCode.DATABASE_DELETE_ERROR);

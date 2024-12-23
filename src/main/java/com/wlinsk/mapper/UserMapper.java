@@ -26,6 +26,10 @@ public interface UserMapper extends BaseMapper<User> {
     int deleteUser(@Param("user") User user);
 
     int updatePassword(@Param("user")User user);
+
+    int updateUserName(@Param("user")User user);
+
+    int updateUserProfile(@Param("user")User user);
 }
 
 

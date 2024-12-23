@@ -32,6 +32,7 @@ public enum SysCode implements ReturnCode {
     USER_DISABLED("10006","当前用户已被禁用，请联系管理员处理"),
     USER_PASSWORD_ERROR("10007","密码错误，请重新输入"),
     USER_PASSWORD_NOT_SAME("10008","新密码与确认密码不一致，请重新输入"),
+    USER_PROFILE_LENGTH_ERROR("10009","用户简介长度不能超过256字符"),
     APP_REVIEW_STATUS_HAS_CHANGED("11000","应用状态已修改"),
     APP_NOT_REVIEW("11001","当前应用未审核"),
     SCORING_RESULT_RANGE_IS_NULL("11002","结果得分范围不可为空"),
