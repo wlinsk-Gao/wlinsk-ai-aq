@@ -33,6 +33,10 @@ spring:
     allow-bean-definition-overriding: true
   application:
     name: wlinsk-ai-ap
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
   datasource:
     url: jdbc:mysql://192.168.130.129:3306/wlinsk-ai-aq?useUnicode=true&characterEncoding=utf8&allowMultiQueries=true&useSSL=false&useAffectedRows=true&allowPublicKeyRetrieval=true
     username: root
@@ -52,6 +56,11 @@ spring:
         min-idle: 1 # 连接池最小空闲链接默认为0
     host: 192.168.130.129
     port: 6379
+  redisson:
+    mode: single
+    single:
+      host: 192.168.130.129
+      port: 6379
 logging:
   config: classpath:logback-spring.xml
 mybatis-plus:
