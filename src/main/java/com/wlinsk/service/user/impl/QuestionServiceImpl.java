@@ -143,7 +143,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
     private App validateForAddAndUpdate(String appId,List<QuestionContentDTO> questionContent){
         App app = appMapper.queryByAppId(appId);
         Optional.ofNullable(app).orElseThrow(() -> new BasicException(SysCode.DATA_NOT_FOUND));
-        businessValidatorUtils.validateUserInfo(appId);
+        businessValidatorUtils.validateUserInfo(app.getUserId());
         if (AppTypeEnum.SCORE.equals(app.getAppType())) {
             questionContent.stream().map(QuestionContentDTO::getOptions)
                     .map(list -> list.stream().map(QuestionOptionDTO::getScore).reduce(0, Integer::sum))
