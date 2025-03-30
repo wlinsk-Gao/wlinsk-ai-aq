@@ -170,6 +170,7 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
         String json = result.substring(start, end + 1);
         log.info("ai生成结果（截取后的json）：{}", json);
         //当前最新的题目
+        json = json.replace("\\n", "").replace("\\", "");
         List<QuestionContentDTO> list = JSONObject.parseArray(json, QuestionContentDTO.class);
         String aiGenerateQuestionId = Optional.ofNullable(reqDTO.getAiGenerateQuestionId()).orElse(IdUtils.build("aiGenerateQuestion"));
         cacheQuestionTitle(list, oldQuestionList, aiGenerateQuestionId);
@@ -273,7 +274,11 @@ public class QuestionServiceImpl extends ServiceImpl<QuestionMapper, Question>
                             builder.setLength(0);
                         }
                     }
-                }).doOnError(e -> log.error("ai流式生成题目异常：", e))
+                }).doOnError(e -> {
+                    log.error("ai流式生成题目异常：", e);
+                    //TODO SSE服务异常是，前端接收不到，需要处理
+                    throw new BasicException(SysCode.AI_SERVICE_ERROR);
+                })
                 //通知前端数据传输已完成
                 .doOnComplete(() -> {
                     //缓存最新题目

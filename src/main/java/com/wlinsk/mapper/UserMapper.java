@@ -30,6 +30,8 @@ public interface UserMapper extends BaseMapper<User> {
     int updateUserName(@Param("user")User user);
 
     int updateUserProfile(@Param("user")User user);
+
+    int updateUserRole(@Param("user")User user);
 }
 
 

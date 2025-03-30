@@ -45,6 +45,8 @@ public enum SysCode implements ReturnCode {
     SCORE_NON_ZERO("11009","每道题目的总选项得分不能为0"),
     QUESTION_NON_FOUND("11010","当前应用未设置题目，无法审核"),
     SCORING_RESULT_NON_FOUND("11011","当前应用未评分规则，无法审核"),
+
+    AI_SERVICE_ERROR("12000","AI服务异常"),
     ;
 
 

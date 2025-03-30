@@ -65,6 +65,15 @@
             user_profile = #{user.userProfile,jdbcType=VARCHAR}
         where user_id = #{user.userId,jdbcType=VARCHAR} and del_state = 10
     </update>
+    <update id="updateUserRole">
+        update tb_user
+        set
+            version = #{user.version,jdbcType=INTEGER} + 1,
+            update_time = #{user.updateTime,jdbcType=TIMESTAMP},
+            user_role = #{user.userRole,jdbcType=INTEGER,javaType=com.wlinsk.basic.enums.UserRoleEnum,
+            typeHandler=com.wlinsk.basic.handler.UniversalEnumHandler}
+        where user_id = #{user.userId,jdbcType=VARCHAR} and del_state = 10
+    </update>
     <select id="queryByUserAccount" resultMap="BaseResultMap">
         select <include refid="Base_Column_List"/> from tb_user
         where user_account = #{userAccount,jdbcType=VARCHAR} and del_state = 10

@@ -2,6 +2,7 @@ package com.wlinsk.controller.manager;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.wlinsk.basic.Result;
+import com.wlinsk.model.dto.user.req.ManagerUpdateRoleReqDTO;
 import com.wlinsk.model.dto.user.req.ManagerUserQueryPageReqDTO;
 import com.wlinsk.model.dto.user.resp.ManagerUserQueryPageRespDTO;
 import com.wlinsk.service.manager.ManagerUserService;
@@ -29,6 +30,12 @@ public class ManagerUserController {
     @PostMapping("/deleteById/{userId}")
     public Result<Void> deleteById(@PathVariable("userId") String userId){
         managerUserService.deleteById(userId);
+        return Result.ok();
+    }
+
+    @PostMapping("/updateRole")
+    public Result<Void> updateRole(@Validated @RequestBody ManagerUpdateRoleReqDTO reqDTO){
+        managerUserService.updateRole(reqDTO);
         return Result.ok();
     }
 }

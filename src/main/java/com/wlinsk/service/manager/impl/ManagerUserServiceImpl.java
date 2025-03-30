@@ -1,5 +1,6 @@
 package com.wlinsk.service.manager.impl;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wlinsk.basic.enums.DelStateEnum;
@@ -10,6 +11,8 @@ import com.wlinsk.basic.transaction.BasicTransactionTemplate;
 import com.wlinsk.basic.utils.BasicAuthContextUtils;
 import com.wlinsk.basic.utils.RedisUtils;
 import com.wlinsk.mapper.UserMapper;
+import com.wlinsk.model.bo.TokenBo;
+import com.wlinsk.model.dto.user.req.ManagerUpdateRoleReqDTO;
 import com.wlinsk.model.dto.user.req.ManagerUserQueryPageReqDTO;
 import com.wlinsk.model.dto.user.resp.ManagerUserQueryPageRespDTO;
 import com.wlinsk.model.entity.User;
@@ -72,5 +75,32 @@ public class ManagerUserServiceImpl implements ManagerUserService {
         });
 
 
+    }
+
+    @Override
+    public void updateRole(ManagerUpdateRoleReqDTO reqDTO) {
+        User user = userMapper.queryByUserId(reqDTO.getUserId());
+        if (Objects.isNull(user)){
+            throw new BasicException(SysCode.DATA_NOT_FOUND);
+        }
+        User updateUser = new User();
+        updateUser.setUserId(reqDTO.getUserId());
+        updateUser.setUserRole(reqDTO.getUserRole());
+        updateUser.setVersion(user.getVersion());
+        updateUser.setUpdateTime(new Date());
+
+        basicTransactionTemplate.execute(action -> {
+            int result = userMapper.updateUserRole(updateUser);
+            if (result != 1){
+                throw new BasicException(SysCode.DATABASE_UPDATE_ERROR);
+            }
+            String oldTokenBo = redisUtils.getVal(reqDTO.getUserId());
+            if (StringUtils.isNotBlank(oldTokenBo)){
+                TokenBo tokenBo = JSON.parseObject(oldTokenBo, TokenBo.class);
+                redisUtils.delVal(tokenBo.getToken());
+                redisUtils.delVal(reqDTO.getUserId());
+            }
+            return SysCode.success;
+        });
     }
 }
