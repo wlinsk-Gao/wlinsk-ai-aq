@@ -180,23 +180,23 @@
         </includes>
       </resource>
     </resources>
-    <!--<plugins>-->
-    <!--  <plugin>-->
-    <!--    <groupId>org.springframework.boot</groupId>-->
-    <!--    <artifactId>spring-boot-maven-plugin</artifactId>-->
-    <!--    <configuration>-->
-    <!--      <mainClass>com.wlinsk.Application</mainClass>-->
-    <!--      <fork>true</fork>-->
-    <!--      <includeSystemScope>true</includeSystemScope>-->
-    <!--    </configuration>-->
-    <!--    <executions>-->
-    <!--      <execution>-->
-    <!--        <goals>-->
-    <!--          <goal>repackage</goal>-->
-    <!--        </goals>-->
-    <!--      </execution>-->
-    <!--    </executions>-->
-    <!--  </plugin>-->
-    <!--</plugins>-->
+    <plugins>
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+        <configuration>
+          <mainClass>com.wlinsk.Application</mainClass>
+          <fork>true</fork>
+          <includeSystemScope>true</includeSystemScope>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>repackage</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
   </build>
 </project>
